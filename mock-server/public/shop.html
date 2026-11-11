@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><title>Shop</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; }
+    .badge { background:#d00; color:#fff; padding:2px 8px; border-radius:11px; font-weight:700; }
+    .error { color:#b00020; font-weight:600; } .ok { color:#137333; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div style="float:right">🛒 <span id="cart-count" class="badge">0</span></div>
+  <h1>Product A</h1>
+  <label>Quantity: <input id="qty" type="number" value="1" min="1" /></label>
+  <div style="margin-top:16px">
+    <button id="add-to-cart">Add to cart</button>
+    <button id="view-cart">View cart</button>
+  </div>
+  <div id="status" style="margin-top:12px"></div>
+  <div id="cart-items" style="margin-top:12px"></div>
+  <script>
+    const countEl = document.getElementById("cart-count");
+    const statusEl = document.getElementById("status");
+    document.getElementById("add-to-cart").addEventListener("click", async () => {
+      const qty = Number(document.getElementById("qty").value) || 1;
+      statusEl.textContent = "";
+      const res = await fetch("/cart/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: "PROD-A", qty }) });
+      if (res.ok) {
+        const data = await res.json();
+        countEl.textContent = String(data.cartCount);
+        statusEl.className = "ok"; statusEl.textContent = "Added to cart";
+      } else {
+        statusEl.className = "error"; statusEl.textContent = "Error: could not add to cart";
+      }
+    });
+    document.getElementById("view-cart").addEventListener("click", async () => {
+      const res = await fetch("/cart");
+      const data = await res.json();
+      document.getElementById("cart-items").textContent = "Cart page — items in backend cart: " + data.cartCount;
+    });
+  </script>
+</body>
+</html>

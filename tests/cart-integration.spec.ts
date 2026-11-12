@@ -26,10 +26,13 @@ test("Cart Icon matches the backend Cart count (standar qunatity)@integration", 
 });
 
 test("Regression: Bulk add reconciles icon with backend in the corrected flow @integration @regression",
-    async ({ cartPage, request }) => {
+    async ({ cartPage,page, request }) => {
 
         await cartPage.gotoCartPage("fixed");
+        const addResponse = page.waitForResponse
+        ((r) => r.url().includes("/cart/add") && r.request().method() === "POST");
         await cartPage.addToCart(BULK);
+        expect((await addResponse).status()).toBe(500);
         await expect(cartPage.status).toHaveText("Added to cart");
         const backend = await backendCount(request);
         expect(backend).toBe(BULK);

@@ -51,9 +51,10 @@ Playwright auto-starts and stops the mock service (see `webServer` in
 
 ## CI
 
-`.github/workflows/playwright.yml` runs the suite on every push and pull request
-(Node 20, Chromium) and uploads the HTML report as a build artifact, so results
-are visible without running anything locally. A red suite blocks the merge.
+`.github/workflows/playwright.yml` runs the suite (Node 20, Chromium) on pushes
+to `main` and pull requests targeting `main`, and uploads the HTML report as a
+build artifact so results are visible without running anything locally. When this
+check is required by a branch rule, a red run blocks the merge.
 
 ## Layout
 
@@ -71,3 +72,20 @@ are visible without running anything locally. A red suite blocks the merge.
   the cart would be scoped per session/test to allow full parallelism.
 - `trace: retain-on-failure` + `screenshot: only-on-failure` capture evidence
   automatically when a test fails.
+  - Scope limits of the mock: the corrected flow handles an HTTP 500 after a
+  committed write. It does not handle a dropped connection (fetch rejection), a
+  genuinely empty commit, or an error on the reconciliation request itself —
+  deliberately out of scope for a small mock.
+
+  ## AI assistance
+
+This submission was built with AI assistance, disclosed here and in the write-up (§4):
+
+- The mock service files (`mock-server/server.js`, `mock-server/public/shop.html`)
+  were generated with Claude and then reviewed and adjusted by me.
+- I wrote the tests, the page object, and the fixtures myself, with Claude
+  explaining the TypeScript/Playwright patterns.
+- Claude also helped scaffold the Playwright config and CI workflow, and drafted
+  the write-up.
+
+I reviewed and validated everything committed to this repository.

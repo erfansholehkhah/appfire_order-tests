@@ -16,7 +16,7 @@ test.describe(" Cart integration - icon vs backend reconcilation", () => {
 
 
 
-test("Car Icon matches the backend Cart count (standar qunatity)@integraion", async ({ cartPage, request }) => {
+test("Cart Icon matches the backend Cart count (standar qunatity)@integration", async ({ cartPage, request }) => {
     await cartPage.gotoCartPage("fixed");
     await cartPage.addToCart(3);
     await expect(cartPage.status).toHaveText("Added to cart");
@@ -38,7 +38,7 @@ test("Regression: Bulk add reconciles icon with backend in the corrected flow @i
     })
 
 
-test("Regression: Bulk add preseres just populated cart @integration @regression", async ({ cartPage, request }) => {
+test("Regression: Bulk add preserves just populated cart @integration @regression", async ({ cartPage, request }) => {
     await cartPage.gotoCartPage("fixed");
     await cartPage.addToCart(3);
     await expect(cartPage.cartIcon).toHaveText("3");
@@ -54,7 +54,7 @@ test("Regression: Bulk add preseres just populated cart @integration @regression
 
 // bug reproducing 
 
-test("Reproducing : bild add shows err and stale icon , but items are in the backend @integration @ bug ",
+test("Reproducing : bulk add shows error and stale icon , but items are in the backend @integration @bug ",
      async ({ cartPage, request }) => 
     {
     await cartPage.gotoCartPage()
@@ -69,7 +69,7 @@ test("Reproducing : bild add shows err and stale icon , but items are in the bac
 })
 
 
-test("Reproducing : Retryuing after the apparent failiur duplicatoe the quantity @integration @bug",
+test("Reproducing : Retrying after the apparent failure duplicates the quantity @integration @bug",
     async({cartPage, request}) => {
         await cartPage.gotoCartPage();
 

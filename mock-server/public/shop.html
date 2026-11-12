@@ -19,12 +19,18 @@
   <div id="status" style="margin-top:12px"></div>
   <div id="cart-items" style="margin-top:12px"></div>
   <script>
+    // ?mode=fixed drives the corrected behaviour (used by the regression test).
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+    const addUrl = "/cart/add" + (mode ? "?mode=" + encodeURIComponent(mode) : "");
+
     const countEl = document.getElementById("cart-count");
     const statusEl = document.getElementById("status");
+
     document.getElementById("add-to-cart").addEventListener("click", async () => {
       const qty = Number(document.getElementById("qty").value) || 1;
       statusEl.textContent = "";
-      const res = await fetch("/cart/add", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: "PROD-A", qty }) });
+      const res = await fetch(addUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: "PROD-A", qty }) });
       if (res.ok) {
         const data = await res.json();
         countEl.textContent = String(data.cartCount);

@@ -1,47 +1,84 @@
+import { test, expect } from "../fixture";
 
-import {test, expect} from "../fixture";
+const BULK = 250;
+async function backendCount(request: import("@playwright/test").APIRequestContext) {
 
+    const response = await request.get("/cart");
+    expect(response.status()).toBe(200)
+    return (await response.json()).cartCount as number;
 
-test.describe("Cart Integrarion - icon vs backend reconcilation", () => {
+}
 
-    test.beforeEach(async({request}) =>
-        {
-            await request.post("/cart/reset");
-        });
-
-        test("Cart Icon matches the backend cart count (standart qty) @integration",
-            async({cartPage, request})=>
-                {
-                    await cartPage.gotoCartPage();
-                    await cartPage.addToCart(3);
-                    await expect(cartPage.status).toHaveText("Added to cart");
-
-                    const iconCount= await cartPage.getCartCount();
-
-                    const response = await request.get("/cart");
-
-                    const backendCount  = (await response.json()).cartCount;
+test.describe(" Cart integration - icon vs backend reconcilation", () => {
+    test.beforeEach(async ({ request }) => {
+        await request.post("/cart/reset")
+    });
 
 
-                    expect(iconCount).toBe(backendCount)
-                })
 
-                test ("Reporduing Larg quantity added shows error and a stale icon, but items are in the backend",
-                    async ({cartPage , request})=> {
-                        await cartPage.gotoCartPage();
-                        await cartPage.addToCart(50)
+test("Car Icon matches the backend Cart count (standar qunatity)@integraion", async ({ cartPage, request }) => {
+    await cartPage.gotoCartPage("fixed");
+    await cartPage.addToCart(3);
+    await expect(cartPage.status).toHaveText("Added to cart");
 
-                        await expect(cartPage.status).toHaveText("Error: could not add to cart");
-                        await expect(cartPage.cartIcon).toHaveText("0");
+    expect(await cartPage.getCartCount()).toBe(await (backendCount(request)));
+
+});
+
+test("Regression: Bulk add reconciles icon with backend in the corrected flow @integration @regression",
+    async ({ cartPage, request }) => {
+
+        await cartPage.gotoCartPage("fixed");
+        await cartPage.addToCart(BULK);
+        await expect(cartPage.status).toHaveText("Added to cart");
+        const backend = await backendCount(request);
+        expect(backend).toBe(BULK);
+        expect(await cartPage.getCartCount()).toBe(backend);
+
+    })
 
 
-                        const response = await request.get("/cart");
-                        const backendCount = (await response.json()).cartCount;
-                        expect(backendCount).toBe(50);
+test("Regression: Bulk add preseres just populated cart @integration @regression", async ({ cartPage, request }) => {
+    await cartPage.gotoCartPage("fixed");
+    await cartPage.addToCart(3);
+    await expect(cartPage.cartIcon).toHaveText("3");
 
-                        const iconCount = await cartPage.getCartCount();
-                        expect(iconCount).not.toBe(backendCount);
+    await cartPage.addToCart(BULK);
+    await expect(cartPage.status).toHaveText("Added to cart");
 
-                    }
-                )
+    const backend = await backendCount(request);
+    expect(backend).toBe(3 + BULK);
+    expect( await cartPage.getCartCount()).toBe(backend);
 })
+
+
+// bug reproducing 
+
+test("Reproducing : bild add shows err and stale icon , but items are in the backend @integration @ bug ",
+     async ({ cartPage, request }) => 
+    {
+    await cartPage.gotoCartPage()
+    await cartPage.addToCart(BULK);
+    await expect(cartPage.status).toHaveText("Error: could not add to cart");
+    await expect(cartPage.cartIcon).toHaveText("0");
+
+    const backend = await backendCount(request);
+
+    expect(backend).toBe(BULK);
+    expect(await cartPage.getCartCount()).not.toBe(backend);
+})
+
+
+test("Reproducing : Retryuing after the apparent failiur duplicatoe the quantity @integration @bug",
+    async({cartPage, request}) => {
+        await cartPage.gotoCartPage();
+
+        await cartPage.addToCart(BULK);
+        await expect(cartPage.status).toHaveText("Error: could not add to cart");
+        await cartPage.addToCart(BULK);
+        await expect(cartPage.status).toHaveText("Error: could not add to cart");
+        expect(await backendCount(request)).toBe(BULK * 2);
+        await expect(cartPage.cartIcon).toHaveText("0");
+ });
+
+});  

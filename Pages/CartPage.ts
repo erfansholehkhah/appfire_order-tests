@@ -20,9 +20,10 @@ export class CartPage {
     }
 
 
-    async gotoCartPage() 
+    async gotoCartPage(mode?: string) 
     {
-        await this.page.goto("/shop.html");
+        const url = mode ? `/shop.html?mode=${mode}` : "/shop.html";
+         await this.page.goto(url);
     }
     
     async addToCart (qty : number) 
